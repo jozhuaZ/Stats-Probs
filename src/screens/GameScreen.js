@@ -6,12 +6,18 @@ import {
   StyleSheet,
   Alert,
   ImageBackground,
+  Image,
   Animated,
   Easing,
   Dimensions,
 } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
+
+// Responsive functions for scaling values
+const responsiveWidth = (percent) => width * (percent / 100);
+const responsiveHeight = (percent) => height * (percent / 100);
+//const responsiveFontSize = (size) => size * Math.min(width, height) / 1000; // Removed 
 
 const generateHand = () => {
   const cards = ['Catcher', 'Catcher', 'King', 'NPC', 'NPC', 'NPC', 'NPC'];
@@ -70,7 +76,7 @@ export default function GameScreen({ route, navigation }) {
         }, 500); // small delay for better UX
       }
     }, 1000);
-  }, [firstPlayer]); // Added firstPlayer to dependency array to handle potential re-renders
+  }, [firstPlayer]);
 
   useEffect(() => {
     if (aiCatchers <= 0 && !gameOver) {
@@ -87,17 +93,17 @@ export default function GameScreen({ route, navigation }) {
   }, [aiCatchers, playerCatchers, gameOver, navigation]);
 
   // Animated selected card to center and enlarge
-  const animateCard = (onFinish) => {
-    animationValue.setValue(0);
-    Animated.timing(animationValue, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-      easing: Easing.out(Easing.ease),
-    }).start(() => {
-      setTimeout(() => onFinish(), 300);
-    });
-  };
+    const animateCard = (onFinish) => {
+        animationValue.setValue(0);
+        Animated.timing(animationValue, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+            easing: Easing.out(Easing.ease),
+        }).start(() => {
+            setTimeout(() => onFinish(), 300);
+        });
+    };
 
   const attemptCapture = (index) => {
     if (currentTurn !== 'You' || playerCatchers <= 0 || gameOver) return;
@@ -183,7 +189,7 @@ export default function GameScreen({ route, navigation }) {
       {
         translateY: animationValue.interpolate({
           inputRange: [0, 1],
-          outputRange: [0, -height * 0.2], // Adjusted for screen height
+          outputRange: [0, -responsiveHeight(20)], // Adjusted for screen height
         }),
       },
       {
@@ -247,7 +253,10 @@ export default function GameScreen({ route, navigation }) {
                 onPress={() => attemptCapture(index)}
                 disabled={gameOver || playerCatchers <= 0 || currentTurn !== 'You'}
               >
-                <Text style={styles.cardText}>🎴</Text>
+                <Image
+                  style={styles.cardImage}
+                  source={require('../images/card_back.png')}
+                />
               </TouchableOpacity>
             ) : null
           )}
@@ -270,7 +279,9 @@ export default function GameScreen({ route, navigation }) {
         {/* Animated Selected Card */}
         {selectedCard && (
           <Animated.View style={[styles.selectedCard, cardStyle]}>
-            <Text style={styles.cardText}>🎴 {selectedCard}</Text>
+             <Text style={styles.cardText}>
+                  {selectedCard === 'King' ? '👑 King' : selectedCard === 'Catcher' ? '🧲 Catcher' : '🧍 NPC'}
+                </Text>
           </Animated.View>
         )}
 
@@ -320,101 +331,111 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.1)',
     flex: 1,
     alignItems: 'center',
-    paddingTop: height * 0.08, // Adjusted for screen height
-    paddingHorizontal: width * 0.05, // Adjusted for screen width
+    paddingTop: responsiveHeight(8),
+    paddingHorizontal: responsiveWidth(5),
   },
   title: {
-    fontSize: width * 0.08, // Responsive font size
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#f8c146',
-    marginBottom: height * 0.01, // Responsive margin
+    marginBottom: responsiveHeight(1),
   },
   turnInfo: {
     color: '#f8c146',
-    fontSize: width * 0.05, // Responsive font size
-    marginBottom: height * 0.01, // Responsive margin
+    fontSize: 18,
+    marginBottom: responsiveHeight(1),
   },
   thinking: {
     color: '#ccc',
-    fontSize: width * 0.045, // Responsive font size
-    marginBottom: height * 0.01, // Responsive margin
+    fontSize: 16,
+    marginBottom: responsiveHeight(1),
   },
   subtext: {
     color: '#ccc',
-    fontSize: width * 0.04, // Responsive font size
-    marginBottom: height * 0.01, // Responsive margin
+    fontSize: 16,
+    marginBottom: responsiveHeight(1),
   },
   cardContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     flexWrap: 'wrap',
-    gap: width * 0.02, // Responsive gap
-    marginBottom: height * 0.02, // Responsive margin
+    gap: responsiveWidth(2),
+    marginBottom: responsiveHeight(2),
   },
   card: {
+    height: responsiveHeight(12),
+    width: responsiveWidth(18),
     backgroundColor: '#fff',
     borderRadius: 8,
-    padding: width * 0.03, // Responsive padding
-    margin: width * 0.01, // Responsive margin
+    padding: responsiveWidth(1),
+    margin: responsiveWidth(1),
     elevation: 5,
-    minWidth: width * 0.15, // Ensure cards have a minimum width
-    alignItems: 'center'
+    minWidth: responsiveWidth(15),
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  cardImage: {
+    height: '100%',
+    width: '100%',
+    resizeMode: 'contain',
   },
   cardText: {
-    fontSize: width * 0.04, // Responsive font size
+    fontSize: 14,
     textAlign: 'center',
+    textAlignVertical: 'center',
   },
   selectedCard: {
     position: 'absolute',
-    top: '30%',
-    left: '20%',
+     top:  responsiveHeight(30),
+    left: responsiveWidth(20),
     backgroundColor: '#fff',
-    padding: width * 0.05, // Responsive padding
+    padding: responsiveWidth(5),
     borderRadius: 10,
     elevation: 10,
     zIndex: 10,
   },
   info: {
-    fontSize: width * 0.035, // Responsive font size
-    marginTop: height * 0.01, // Responsive margin
+    fontSize: 14,
+    color: 'white',
+    marginTop: responsiveHeight(1),
   },
   probabilityButton: {
-    marginTop: height * 0.03, // Responsive margin
+    marginTop: responsiveHeight(3),
     backgroundColor: '#f8c146',
-    padding: width * 0.03, // Responsive padding
+    padding: responsiveWidth(3),
     borderRadius: 10,
     width: '80%',
   },
   backButton: {
-    marginTop: height * 0.03, // Responsive margin
+    marginTop: responsiveHeight(1),
     backgroundColor: '#f8c146',
-    padding: width * 0.03, // Responsive padding
+    padding: responsiveWidth(3),
     borderRadius: 10,
     width: '80%',
   },
   backButtonText: {
     textAlign: 'center',
     color: '#1b1b1b',
-    fontSize: width * 0.04, // Responsive font size
+    fontSize: 16,
   },
   window: {
     position: 'absolute',
-    top: '20%',
+    top:  responsiveHeight(20),
     width: '100%',
     backgroundColor: 'white',
     borderRadius: 10,
-    padding: width * 0.05, // Responsive padding
+    padding: responsiveWidth(5),
     elevation: 5,
     alignItems: 'center',
   },
   windowTitle: {
-    fontSize: width * 0.05, // Responsive font size
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: height * 0.01, // Responsive margin
+    marginBottom: responsiveHeight(1),
   },
   windowText: {
-    fontSize: width * 0.04, // Responsive font size
-    marginBottom: height * 0.005, // Responsive margin
+    fontSize: 14,
+    marginBottom: responsiveHeight(0.5),
     textAlign: 'center'
   },
   closeButton: {
@@ -426,12 +447,12 @@ const styles = StyleSheet.create({
     padding: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    width: width * 0.05,  // Responsive width
-    height: width * 0.05, // Responsive height
+    width: responsiveWidth(5),
+    height: responsiveWidth(5),
   },
   closeButtonText: {
     color: 'black',
-    fontSize: width * 0.04, // Responsive font size
+    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
   },
